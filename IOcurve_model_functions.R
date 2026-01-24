@@ -680,6 +680,61 @@ plot_contrasts <- function(contrasts_df, contrast_name, title, ci = 0.89){
 
 }
 
+
+build_rMT_array <- function(df) {
+  
+  # Required columns
+  required_cols <- c("subj", "coil", "side", "rMT")
+  if (!all(required_cols %in% names(df))) {
+    stop("Dataframe must contain: subj, coil, side, rMT")
+  }
+  
+  # Create integer indices
+  df_indexed <- df %>%
+    mutate(
+      subj_i = as.integer(factor(subj)),
+      coil_j = as.integer(factor(coil)),
+      side_k = as.integer(factor(side))
+    )
+  
+  # Extract dimensions
+  I <- length(unique(df_indexed$subj_i))
+  J <- length(unique(df_indexed$coil_j))
+  K <- length(unique(df_indexed$side_k))
+  
+  # Check for duplicates (same subj, coil, side appearing more than once)
+  dup_check <- df_indexed %>%
+    count(subj_i, coil_j, side_k) %>%
+    filter(n > 1)
+  
+  if (nrow(dup_check) > 0) {
+    stop("Duplicate rMT entries found for some (subj, coil, side) combinations.")
+  }
+  
+  # Initialize array
+  rMT_array <- array(NA_real_, dim = c(I, J, K))
+  
+  # Fill array
+  for (row in seq_len(nrow(df_indexed))) {
+    i <- df_indexed$subj_i[row]
+    j <- df_indexed$coil_j[row]
+    k <- df_indexed$side_k[row]
+    rMT_array[i, j, k] <- df_indexed$rMT[row]
+  }
+  
+  # Check for missing combinations
+  if (any(is.na(rMT_array))) {
+    warning("Some (subj, coil, side) combinations have no rMT value.")
+  }
+  
+  return(list(
+    rMT_array = rMT_array,
+    subj_levels = levels(factor(df$subj)),
+    coil_levels = levels(factor(df$coil)),
+    side_levels = levels(factor(df$side))
+  ))
+}
+
 prepare_stan_data_IOcurve <- function(df, rMT_data, MSO_limit){
 
 rMT_array <- build_rMT_array(rMT_data)$rMT_array
