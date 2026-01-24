@@ -680,6 +680,96 @@ plot_contrasts <- function(contrasts_df, contrast_name, title, ci = 0.89){
 
 }
 
+prepare_stan_data_IOcurve <- function(df, rMT_data, MSO_limit){
+
+rMT_array <- build_rMT_array(rMT_data)$rMT_array
+
+  # --- 1. Ensure factors ---
+df <- df %>%
+    mutate(
+      coil = factor(coil),
+      side = factor(side),
+      subj = factor(subj)
+    )
+  
+  coils <- levels(df$coil)
+  sides <- levels(df$side)
+  subjs <- levels(df$subj)
+
+  # --- 2. Convert subject IDs to consecutive integers 1..I ---
+  subj_ids <- sort(unique(df$subj))
+  df$subj_index <- match(df$subj, subj_ids)
+
+  # --- 3. Convert coil and side to integer indices ---
+  coil_ids <- sort(unique(df$coil))
+  side_ids <- sort(unique(df$side))
+
+  df$coil_index <- match(df$coil, coil_ids)
+  df$side_index <- match(df$side, side_ids)
+
+  # --- 5. Build Stan data list ---
+  stan_data <- list(
+    N = nrow(df),
+    I = length(subjs),
+    J = length(coils),
+    K = length(sides),
+
+    subj = as.integer(df$subj),
+    coil = as.integer(df$coil),
+    side = as.integer(df$side),
+
+    Intensity = df$Intensity,
+    Y = df$Y,
+    rMT = rMT_array,
+
+    MSO_limit = MSO_limit
+
+  )
+
+  attr(stan_data, "coils") <- coils
+  attr(stan_data, "sides") <- sides
+  attr(stan_data, "subjs") <- subjs
+
+  return(stan_data)
+}
+prepare_stan_data <- function(df) {
+
+  df <- df %>%
+    mutate(
+      coil = factor(coil),
+      side = factor(side),
+      subj = factor(subj)
+    )
+
+  coils <- levels(df$coil)
+  sides <- levels(df$side)
+  subjs <- levels(df$subj)
+
+  N <- nrow(df)
+  N_coil <- length(coils)
+  N_side <- length(sides)
+  N_subj <- length(subjs)
+
+  data_list <- list(
+    N = N,
+    Y = df$Y,
+    Irel = df$Irel,
+    N_coil = N_coil,
+    N_side = N_side,
+    N_subj = N_subj,
+    coil = as.integer(df$coil),
+    side = as.integer(df$side),
+    subj = as.integer(df$subj)
+  )
+
+  attr(data_list, "coils") <- coils
+  attr(data_list, "sides") <- sides
+  attr(data_list, "subjs") <- subjs
+
+  data_list
+}
+
+
 prior_predictive <- function(mod,
                              data_list_template,
                              priors_list,
