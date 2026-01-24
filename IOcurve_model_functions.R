@@ -1,6 +1,7 @@
 require(ggplot2)
 require(dplyr)
 require(tidyr)
+library(digest)
 
 
 load_and_preprocess_rMT_data <- function (fn = './data/motor_thresholds.csv'){
@@ -282,3 +283,56 @@ argmin_edges <- function(a, b) {
     }
   })
 }
+
+
+# Function to verify file integrity against stored hash
+verify_file_hash <- function(filepath, checksum_file = "CHECKSUMS.md") {
+  if (!file.exists(filepath)) {
+    stop("File does not exist: ", filepath)
+    return(FALSE)
+  }
+  
+  if (!file.exists(checksum_file)) {
+    warning("Checksum file not found: ", checksum_file)
+    cat("Please verify the file manually or regenerate checksums.\n")
+    return(TRUE)  # Allow execution but warn user
+  }
+  
+  # Compute current hash
+  current_hash <- compute_file_hash(filepath)
+  
+  # Read checksums file
+  checksums <- readLines(checksum_file)
+  
+  # Extract filename from path
+  filename <- basename(filepath)
+  
+  # Find the line with this file's hash
+  hash_line <- grep(filename, checksums, value = TRUE)
+  
+  if (length(hash_line) == 0) {
+    warning("No checksum found for: ", filename)
+    cat("Please verify the file manually or regenerate checksums.\n")
+    return(TRUE)  # Allow execution but warn user
+  }
+  
+  # Extract expected hash (format: "hash  filename" or "- `hash` - filename")
+  expected_hash <- sub(".*`([a-f0-9]{64})`.*", "\\1", hash_line)
+  
+  # If markdown format didn't match, try simple format
+  if (nchar(expected_hash) != 64) {
+    expected_hash <- sub("^([a-f0-9]{64}).*", "\\1", hash_line)
+  }
+  
+  # Compare hashes
+  if (current_hash == expected_hash) {
+    cat("✓ File integrity verified:", filename, "\n")
+    return(TRUE)
+  } else {
+    cat("✗ Hash mismatch for:", filename, "\n")
+    cat("  Expected:", expected_hash, "\n")
+    cat("  Got:     ", current_hash, "\n")
+    return(FALSE)
+  }
+}
+
