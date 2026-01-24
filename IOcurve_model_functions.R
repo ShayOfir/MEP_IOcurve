@@ -293,6 +293,16 @@ argmin_edges <- function(a, b) {
   })
 }
 
+# Function to compute SHA-256 hash of a file
+compute_file_hash <- function(filepath) {
+  if (!file.exists(filepath)) {
+    stop("File does not exist: ", filepath)
+  }
+  
+  hash <- digest(file = filepath, algo = "sha256")
+  return(hash)
+}
+
 
 # Function to verify file integrity against stored hash
 verify_file_hash <- function(filepath, checksum_file = "CHECKSUMS.md") {
