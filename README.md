@@ -203,8 +203,6 @@ This explicitly models the truncation mechanism, avoiding selection bias from eq
 
 See `Main.ipynb` sections 1-3 for complete mathematical specification and derivations.
 
-# ...existing code...
-
 ## Analysis Pipeline
 
 The complete Bayesian workflow includes:
