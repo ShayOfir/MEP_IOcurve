@@ -10,9 +10,7 @@ There present Repository contains the code and data of a hierarchical Bayesian m
 
 In short, each subject underwent resting motor threshold (rMT) determination followed by MEP recruitment curve acquisition at multiple stimulation intensities (from 90% to 150% of rMT for that side, coil and subject). The MEP amplitudes were recorded from the contralateral FDI muscle using surface electromyography (EMG). Approximately 5 trials were collected for each intensity. Condition order was randomize to counter-balance potential order effects.
 
-More detail will be provided in the upcoming publication:
-
-*Wonderman Bar Sela et al., 2026: "MEPs elicited by multidirectional rotational-field TMS show marked differences compared to unidirectional Figure-of-8 and H7 coils",* PLoS ONE\* (in review).\*
+For more details please look at the article ([Wonderman Bar Sela et al., 2026](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0343725))
 
 This repository will focus on the methodological aspects of modeling MEP recruitment curves with Bayesian hierarchical models.
 
